@@ -1,0 +1,398 @@
+int us1t=52,us1e=50;
+ int c1p1r=34,c1p1g=36,c1p1b=38,c1p1c=40;
+ int c1p2r=42,c1p2g=44,c1p2b=46,c1p2c=48;
+ int c1p3r=29,c1p3g=27,c1p3b=25,c1p3c=23;
+
+ int c2p1r=7,c2p1g=6,c2p1b=5,c2p1c=4;
+ int c2p2r=13,c2p2g=12,c2p2b=11,c2p2c=10;
+ int us2e=20,us2t=21;
+void setup() {
+  Serial.begin(9600);
+  pinMode(us1t, OUTPUT);
+  pinMode(us1e, INPUT);
+  pinMode(us2t, OUTPUT);
+  pinMode(us2e, INPUT);
+  
+  pinMode(c1p1c,INPUT);
+  pinMode(c1p1r,OUTPUT);
+  pinMode(c1p1g,OUTPUT);
+  pinMode(c1p1b,OUTPUT);
+  
+  pinMode(c1p2c,INPUT);
+  pinMode(c1p2r,OUTPUT);
+  pinMode(c1p2g,OUTPUT);
+  pinMode(c1p2b,OUTPUT);
+  
+  pinMode(c1p3c,INPUT);
+  pinMode(c1p3r,OUTPUT);
+  pinMode(c1p3g,OUTPUT);
+  pinMode(c1p3b,OUTPUT);
+
+  pinMode(c2p1c,INPUT);
+  pinMode(c2p1r,OUTPUT);
+  pinMode(c2p1g,OUTPUT);
+  pinMode(c2p1b,OUTPUT);
+  
+  pinMode(c2p2c,INPUT);
+  pinMode(c2p2r,OUTPUT);
+  pinMode(c2p2g,OUTPUT);
+  pinMode(c2p2b,OUTPUT);
+
+  digitalWrite(c1p1r,0);
+  digitalWrite(c1p1g,0);
+  digitalWrite(c1p1b,0);
+  
+  digitalWrite(c1p2r,0);
+  digitalWrite(c1p2g,0);
+  digitalWrite(c1p2b,0);
+  
+  digitalWrite(c1p3r,0);
+  digitalWrite(c1p3g,0);
+  digitalWrite(c1p3b,0);
+
+  digitalWrite(c2p1r,0);
+  digitalWrite(c2p1g,0);
+  digitalWrite(c2p1b,0);
+  
+  digitalWrite(c2p2r,0);
+  digitalWrite(c2p2g,0);
+  digitalWrite(c2p2b,0);
+
+}
+
+void loop() {
+  int temp=0;
+  int c1p[3]={1,1,1};
+  int c2p[2]={1,1};
+  char c[]={' ',' '};
+  char t[]={' '};
+  int cp=0,uc=0;
+  int i,p_num=0,p1_num=0,flag=0,max_kms=0;
+  long duration, distance=0;
+  
+  digitalWrite(c1p1c,1);
+  digitalWrite(c1p2c,1);
+  digitalWrite(c1p3c,1);
+  digitalWrite(c2p1c,1);
+  digitalWrite(c2p2c,1);
+  
+  Serial.println("DETECTING BATTERY PERCENTANGE...");
+  Serial.println("");
+  
+  while(!Serial.available());
+  Serial.readBytes(c,2);
+  cp=atoi(c);
+  while(!Serial.available());
+  Serial.readBytes(c,2);
+  
+  Serial.print("BATTERY PERCENTAGE:");
+  Serial.print(cp);
+  Serial.println("%");
+  Serial.println("");
+  max_kms=cp*4.5;// 1% 4.5kms
+  Serial.print("maximum kilometers that can be travel with this charge is ");
+  Serial.print(max_kms);
+  Serial.println(" kms");
+  Serial.println("");
+  delay(1000);
+  
+  if(max_kms<147)//cant reach station 1  <=32.22
+   {
+    Serial.println("No charging station is available,dont travel");
+   }
+  else//enough charge
+   {
+    while(distance==0)
+    {
+      digitalWrite(us1t,HIGH);
+      delayMicroseconds(1000);
+      digitalWrite(us1t,LOW);
+      duration=pulseIn(us1e, HIGH);
+      distance =(duration/2)/29.1;
+      Serial.print("Distance to the Ironman CS : ");
+      distance=(distance*3)-9;
+      Serial.print(distance);
+      Serial.println(" kMs");
+    }
+    if(max_kms>=147*2)
+    {
+      Serial.println("Ironman CS and Thanos CS are available on your way");
+    }
+    else//only one station
+    {
+      Serial.println("Only Ironman CS is on your way");
+    }
+    if(max_kms>147)
+    {
+      Serial.println("Cheking availablity of ports in IronMan CS");
+      Serial.print("Available Ports : ");
+      c1p[0]=digitalRead(c1p1c);
+      if(c1p[0]==1)
+      {
+       Serial.println(" Port 1");
+       digitalWrite(c1p1g,1);
+       digitalWrite(c1p1r,0);
+       p_num=1;
+      }
+      else
+      {
+        digitalWrite(c1p1r,1);
+        digitalWrite(c1p1g,0);
+      }
+      c1p[1]=digitalRead(c1p2c);
+      if(c1p[1]==1)
+      {
+       Serial.println(" Port 2");
+       digitalWrite(c1p2g,1);
+       digitalWrite(c1p2r,0);
+       p_num=2;
+      }
+      else
+      {
+        digitalWrite(c1p2r,1);
+        digitalWrite(c1p2g,0);
+      }
+      c1p[2]=digitalRead(c1p3c);
+      if( c1p[2]==1 )
+      {
+        Serial.println(" Port 3");
+        digitalWrite(c1p3g,1);
+        digitalWrite(c1p3r,0);
+        p_num=3;
+      }
+      else
+      {
+        digitalWrite(c1p3r,1);
+        digitalWrite(c1p3g,0);
+      }
+      if(c1p[0]==0 && c1p[1] ==0 && c1p[2]==0 )
+      {
+        Serial.println("NILL");
+        p_num=0;
+      }
+    }
+    if(max_kms>2*150)//can reach both the station
+    {
+     Serial.println("Cheking availablity of ports in Thanos CS");
+     Serial.print("Available Ports : ");
+     c2p[0]=digitalRead(c2p1c);
+     if(c2p[0]==1)
+        {
+          Serial.println("Port 1 ");
+          digitalWrite(c2p1g,1);
+          digitalWrite(c2p1r,0);
+          p1_num=1;
+         }
+     else
+        {
+          digitalWrite(c2p1r,1);
+          digitalWrite(c2p1g,0);
+        }
+     c2p[1]=digitalRead(c2p2c);
+     if(c2p[1]==1)
+        {
+           Serial.println(" Port 2 ");
+           digitalWrite(c2p2g,1);
+           digitalWrite(c2p2r,0);
+           p1_num=2;
+        }
+     else
+        {
+           digitalWrite(c2p2r,1);
+           digitalWrite(c2p2g,0);
+        }
+     if(c2p[0]==0 && c2p[1]==0)
+        {
+           Serial.println(" NILL");
+           p1_num=0;
+        }
+    } 
+//booking   
+    if(max_kms<147*2)//cant reach thanos station
+      {
+        Serial.println("!!!!!YOUR BATTERY IS RUNNING LOW!!!!!");
+        Serial.println("");
+        Serial.println("Contacting IRONMAN CHARGING STATION.....");
+        Serial.println("");
+        if(p_num==0)
+          {
+            Serial.println("Unfortunetly no port is available");
+            Serial.println("So Estimates wait time in charging station is 30minutes");
+            Serial.println("Port number 1 Booked in Avengers Charging station");
+            digitalWrite(c1p1b,1);
+            digitalWrite(c1p1r,1);
+            Serial.println(distance);
+            while(distance>1)
+            {
+              digitalWrite(us1t,HIGH);
+              delayMicroseconds(1000);
+              digitalWrite(us1t,LOW);
+              duration=pulseIn(us1e, HIGH);
+              distance =(duration/2)/29.1;
+              Serial.print("Distance to the Ironman CS : ");
+              distance=(distance*3)-9;
+              Serial.print(distance);
+              Serial.println(" kMs");
+              delay(1000);
+            }
+            Serial.println("Destination reached ");
+            digitalWrite(c1p1b,0);
+            digitalWrite(c1p1r,1);
+            temp=1;
+            c1p[0]=1;          
+          }
+        else
+          {
+            Serial.println("You can't reach the next charging station with this charge");
+            uc=1;//to book the port
+          }
+      }
+    else//kms >116
+      {
+          if(p_num==0)
+            {
+              Serial.println("No port is available in Ironman charging station.DO you want to book the port Estimates wait time after reaching station is 30 mins?  1/0");
+              Serial.println("");
+              uc=0;
+              while(!Serial.available());
+              Serial.readBytes(t,1);
+              uc=atoi(t);
+              while(!Serial.available());
+              Serial.readBytes(t,1);
+              p_num=1;
+            }
+          else
+            {
+              Serial.println("Port available in Ironman charging station,Do you want to book the port 1/0");
+              uc=0;
+              while(!Serial.available());
+              Serial.readBytes(t,1);
+              uc=atoi(t);
+              while(!Serial.available());
+              Serial.readBytes(t,1); 
+            }
+      }
+    if(uc==1)
+      {
+         
+         c1p[p_num-1]=1;
+         if(p_num==1)
+            {
+               digitalWrite(c1p1b,1);
+               digitalWrite(c1p1g,0);
+            }
+          else if(p_num==2)
+            {
+                digitalWrite(c1p2b,1);
+                digitalWrite(c1p2g,0);
+            }
+          else
+            {
+                digitalWrite(c1p3b,1);
+                 digitalWrite(c1p3g,0);
+            }
+            Serial.println("Port Booked in Ironman Charging station ");
+         Serial.print("Port number ");
+         Serial.println(p_num);
+         Serial.println(distance);
+         while(distance>0)
+            {
+              digitalWrite(us1t,HIGH);
+              delayMicroseconds(1000);
+              digitalWrite(us1t,LOW);
+              duration=pulseIn(us1e, HIGH);
+              distance =(duration/2)/29.1;
+              Serial.print("Distance to the Ironman CS : ");
+              distance=(distance*3)-9;
+              Serial.print(distance);
+              Serial.println(" kMs");
+              delay(1000);
+            }
+         Serial.println("Destination reached ");
+         temp=1;
+       }
+     else if(temp==0)//CROSSED CS1
+       {
+          Serial.println("Next Thanos charging station is at 312kms");
+
+            while(distance>1)
+            {
+              digitalWrite(us1t,HIGH);
+              delayMicroseconds(1000);
+              digitalWrite(us1t,LOW);
+              duration=pulseIn(us1e, HIGH);
+              distance =(duration/2)/29.1;
+              Serial.print("Distance to the Thanos CS : ");
+              distance=(distance*3)-9;
+              int t=distance+137;
+              Serial.print(t);
+              Serial.println(" kMs");
+              delay(1000);
+            }          
+          Serial.println("!!!!!YOUR BATTERY IS RUNNING LOW!!!!!");
+          Serial.println("");
+          Serial.println("Contacting Thanos CHARGING STATION.....");
+          Serial.println("");
+          if(p1_num==0)
+             {
+                Serial.println("No port is available in Thanos charging station also you cant reach next station with this charge");
+                Serial.println("So We booked the port 1.");
+                Serial.println("Estimated wait time after reaching charging station is 30 mins");
+                digitalWrite(c2p1b,1);
+                digitalWrite(c2p1r,1);
+                while(distance>1)//error may come
+                   {
+                      digitalWrite(us2t,HIGH);
+                      delayMicroseconds(1000);
+                      digitalWrite(us2t,LOW);
+                      duration=pulseIn(us2e, HIGH);
+                      distance =(duration/2)/29.1;
+                      Serial.print("Distance to the Thanos CS : ");
+                      distance=(distance*3)-9;
+                      Serial.print(distance);
+                      Serial.println(" kMs");
+                      delay(1000);
+                   }
+            Serial.println("Destination reached ");
+                c2p[0]=1;          
+             }
+          else//port available booking in cs2  
+            {
+                Serial.println("You cant reach the next charging station with this charge");
+                Serial.print("Port ");
+                Serial.println(p1_num);
+                Serial.println(" Booked in Thanos Charging station ");
+                distance=147;
+                while(distance>1)//error may come
+                   {
+                      digitalWrite(us2t,HIGH);
+                      delayMicroseconds(1000);
+                      digitalWrite(us2t,LOW);
+                      duration=pulseIn(us2e, HIGH);
+                      distance =(duration/2)/29.1;
+                      Serial.print("Distance to the Thanos CS : ");
+                      distance=(distance*3)-9;
+                      Serial.print(distance);
+                      Serial.println(" kMs");
+                      delay(1000);
+                   }
+                Serial.println("Destination reached ");
+                
+                if( p1_num==1 )
+                  {
+                    digitalWrite(c2p1b,1);
+                    digitalWrite(c2p1g,0);
+                   }
+                 else
+                   {
+                     digitalWrite(c2p2b,1);
+                     digitalWrite(c2p2g,0);
+                   }      
+             }  
+      }
+          
+   }
+        
+    delay(2000);
+   Serial.println("Thank You");
+  }
